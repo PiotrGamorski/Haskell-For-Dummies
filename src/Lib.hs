@@ -54,10 +54,18 @@ pow2loop' n resInit i
  | otherwise = resInit
 
 -- THEOREM: evry loop can be constructed with recursion.
+-- How to execute the latter function in GHCI?
 someLoop :: (Ord t, Num a, Num t) => t -> (a -> a) -> t -> a -> a
 someLoop n resInit i 
  | i < n = someLoop n (\ resInit -> resInit * 2 + 1) (i + 1)
  | otherwise = resInit
+
+-- the same achieved with where statement. Maybe above $ operator will be beeter instead of arrow func
+someLoop' :: (Ord t, Num p, Num t) => t -> p -> t -> p
+someLoop' n resInit i
+  | i < n = someLoop' n (loopBody resInit) (i + 1)
+  | otherwise = resInit
+  where loopBody resInit = resInit * 2 + 1
 
 newPow2 :: Int -> Int
 newPow2 n =
