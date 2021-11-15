@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Lib where
 
 import Data.List (elemIndex)
@@ -54,18 +55,29 @@ pow2loop' n resInit i
  | otherwise = resInit
 
 -- THEOREM: evry loop can be constructed with recursion.
--- How to execute the latter function in GHCI?
+-- How to execute the latter function in GHCI? Run: someLoop 3 (\a->a) 1 0
+-- The latter function in not constructed well as it takes anonym. func in body 
 someLoop :: (Ord t, Num a, Num t) => t -> (a -> a) -> t -> a -> a
-someLoop n resInit i 
- | i < n = someLoop n (\ resInit -> resInit * 2 + 1) (i + 1)
- | otherwise = resInit
+someLoop n result i 
+ | i < n = someLoop n (\ result -> result * 2 + 1) (i + 1)
+ | otherwise = result
 
--- the same achieved with where statement. Maybe above $ operator will be beeter instead of arrow func
+-- the same achieved with where statement. Maybe above $ operator will be better instead of arrow func?
 someLoop' :: (Ord t, Num p, Num t) => t -> p -> t -> p
-someLoop' n resInit i
-  | i < n = someLoop' n (loopBody resInit) (i + 1)
-  | otherwise = resInit
-  where loopBody resInit = resInit * 2 + 1
+someLoop' n input counter
+  | counter < n = someLoop' n (loopLogic input) (counter + 1)
+  | otherwise = input
+  where loopLogic x = x * 2 + 1
+
+-- To execute run for instance: anotherLoop 3 1 0 (\x->2*x+1)
+-- or use the loopFunc below i.e., anotherLoop 3 1 0 loopFunc
+anotherLoop :: (Ord t1, Num t1) => t1 -> t2 -> t1 -> (t2 -> t2) -> t2
+anotherLoop n input counter loopFunc
+ | counter < n = anotherLoop n (loopFunc input) (counter + 1) loopFunc
+ | otherwise = input
+
+loopFunc :: Num a => a -> a
+loopFunc x = 2 * x + 1
 
 newPow2 :: Int -> Int
 newPow2 n =
@@ -91,21 +103,42 @@ pow2Guard n
   | n == 0 = 1
   | otherwise = 2 * pow2Guard (n -1)
 
+-- ------------------LISTS IN HASKELL------------------
+-- tail [1,2,3,4] = [2,3,4] and head [2,3,4] = 2. So, elem = 2
+elem :: Integer
+elem = head (tail [1,2,3,4])
+
 doubleNums :: Num a => [a] -> [a]
 doubleNums nums =
   if null nums
     then []
     else (2 * head nums) : doubleNums (tail nums)
 
--- the same function but using "Patern Matching"
+doubleNums' :: Num a => [a] -> [a]
+doubleNums' nums
+ | null nums = []
+ | otherwise = double' (head nums) : doubleNums' (tail nums)
+ where double' x = 2 * x
+
+-- the same result but using "Patern Matching"
+doubleNums'' :: Num a => [a] -> [a]
+doubleNums'' [] = []
+doubleNums'' (x : xs) = double' x : doubleNums'' xs
+ where double' num = 2 * num  
+
+-- the same function but using "Patern Matching" and map
 double :: Num a => [a] -> [a]
 double = map (2 *)
 
+-- Haskell knows that there is a missing argument - a list of integers! This is a very short syntax
 doubleWithMap :: [Integer] -> [Integer]
 doubleWithMap = map (2 *)
 
--- Haskell knows that there is a missing argument - a list of integers! This is a very short syntax
--- ----------------------------------
+modifyListElem :: Num a => [a] -> [a]
+modifyListElem = map (\ x -> 2 * x + 1)
+
+-- a little bit more complex examples
+
 removeOdd :: Integral a => [a] -> [a]
 removeOdd nums =
   if null nums
@@ -140,6 +173,14 @@ removeOddCase nums = case nums of
       then x : removeOddCase xs
       else removeOddCase xs
 
+-- This is the easiest way to achive removing odd numbers from a list
+removeOddFilter :: [Integer] -> [Integer]
+removeOddFilter = filter even
+
+-- We can change a diffrent conditions using filter
+filterList :: [Integer] -> [Integer]
+filterList = filter (\ a -> even a && a > 2 && a < 7) 
+
 anyEven :: Integral a => [a] -> Bool
 anyEven nums = case removeOddGuard nums of
   [] -> False
@@ -149,6 +190,7 @@ anyEven nums = case removeOddGuard nums of
 isEven :: Integer -> Bool
 isEven = even
 
+-- this one is overcomplicated
 onlyEven :: [Integer] -> [Integer]
 onlyEven = filter isEven
 
@@ -165,9 +207,12 @@ evenOrOdd num
 increaseEveryEven :: Integral b => [b] -> [b]
 increaseEveryEven = map evenOrOdd
 
-getIndexTable :: Eq a => [a] -> [Maybe Int]
-getIndexTable nums = map (`elemIndex` nums) nums
+-- the latter syntax is the shortcut for "\x -> elemIndex x nums"
+-- Haskell knows that map takes an argument from a list and passes it immediately to elemIndex.
+getAllIndexesOfList :: Eq a => [a] -> [Maybe Int]
+getAllIndexesOfList elems = map (`elemIndex` elems) elems
 
+-- fromMaybe (-1): "Just Value" -> Value 
 mupliplyEvenListElement :: (Eq p, Num p) => p -> [p] -> p
 mupliplyEvenListElement a list
   | even (fromMaybe (-1) $ elemIndex a list) = 2 * a
@@ -176,8 +221,16 @@ mupliplyEvenListElement a list
 multiplyEverySecond :: (Eq b, Num b) => [b] -> [b]
 multiplyEverySecond nums = map (`mupliplyEvenListElement` nums) nums
 
+multiplyEverySecond' :: (Eq b, Num b) => [b] -> [b]
+multiplyEverySecond' nums = map (`multiplyEvenElem` nums) nums 
+ where multiplyEvenElem a list 
+        | even (fromMaybe (-1) $ elemIndex a list) = 2 * a 
+        | otherwise = a
+
 a :: Maybe Int
 a = elemIndex 4 [1, 2, 3, 4, 5, 6, 7, 8, 9]
+b :: Int
+b = fromMaybe (-1) $ elemIndex 4 [1,2,3,4,5,6,7,8,9]
 
 -- reuslt of latter is 3
 
