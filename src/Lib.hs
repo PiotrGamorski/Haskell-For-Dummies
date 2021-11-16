@@ -27,13 +27,13 @@ three =
       funcTwo = 12
    in funcOne funcTwo
 
-posOrNeg :: (Ord a, Num a) => a -> [Char]
+posOrNeg :: (Ord a, Num a) => a -> String
 posOrNeg x =
   if x >= 0
     then "Positive"
     else "Negative"
 
-posOrNeg' :: (Ord a, Num a) => a -> [Char]
+posOrNeg' :: (Ord a, Num a) => a -> String
 posOrNeg' x
  | x >= 0 = "Positive"
  | otherwise = "Negative"
@@ -267,11 +267,11 @@ listModify'' nums = map(`pickAndModifyElem` nums) nums
 newListModify :: (Num b, Eq b) => [b] -> [b]
 newListModify [] = []
 newListModify nums = map(`pickAndModifyElem` nums) nums
- where pickAndModifyElem x list 
+ where pickAndModifyElem x list
           | index > 3 = 5 * x
           | index == 3 = 10 * x +3
           | index < 3 && index >= 2 = 3 * x
-          | index == 1 = x + 47 
+          | index == 1 = x + 47
           | otherwise = -x
           where index = fromMaybe (-1) (elemIndex x list)
 
@@ -286,7 +286,40 @@ countEven nums =
 createList :: (Eq a, Num a) => a -> [a]
 createList n
   | n == 0 = []
-  | otherwise = n : createList (n -1)
+  | otherwise = n : createList (n - 1)
+
+-- How to write a function which reverts a list? One can use built in "reverse" function
+-- init xs returns all elements from a list except the last one
+myReverseList :: [a] -> [a]
+myReverseList [] = []
+myReverseList xs = last xs : myReverseList (init xs)
+
+-- no-recursion approach
+addElemToTheEndOfTheList :: a -> [a] -> [a]
+addElemToTheEndOfTheList num xs = xs ++ [num]
+
+-- one insists on recursion. The same can be achived simplier using foldr
+addElemToTheEndOfTheList' :: Num t => t -> [t] -> [t]
+addElemToTheEndOfTheList' num [] = [num]
+addElemToTheEndOfTheList' num (x : xs) = x : addElemToTheEndOfTheList' num xs
+
+-- the same result but with the usage of "foldr"
+addElemToTheEndOfTheList'' :: Num a => a -> [a] -> [a]
+addElemToTheEndOfTheList'' num = foldr (:) [num]
+
+insertElemAt :: Eq a => Int -> a -> [a] -> [a]
+insertElemAt _ _ [] = []
+insertElemAt index elem xs =
+  let
+  func y ys = fromMaybe (-1) (elemIndex y ys)
+  leftSideList = filter (\ x -> func x xs < index) xs
+  rightSideList = filter (\ x -> func x xs > index) xs
+  in
+   leftSideList ++ [elem] ++ rightSideList
+
+pickElemFromList' :: Eq a => Int -> [a] -> [a]
+pickElemFromList' _ [] = []
+pickElemFromList' index list = filter (\x -> fromMaybe (-1) (elemIndex x list) == index) list
 
 createListWithLoop :: (Ord t, Num t) => t -> [t]
 createListWithLoop n = loopList n [] 0
@@ -344,14 +377,13 @@ lengthOfAnyArray (x : xs) = length xs + 1
 -- for any numeric (class) type p, the function takes list of values of type p as argument
 --  and returns value of type p
 theSum :: Num p => [p] -> p
-theSum [] = 0
-theSum (x : xs) = x + theSum xs
+theSum = foldr (+) 0
 
 -- for any foldable (class) type t and numeric (class) type b, the function takes argument as a value of type b
 -- (b stands for 0 in this example) and returns value of type b.
 -- since "foldl" or "foldr" take array and function as arguments, this info is incuded in "Foldable t"!
 theSumFold :: (Foldable t, Num b) => t b -> b
-theSumFold = foldl (+) 0
+theSumFold = sum
 -- (...(((0 + x1) + x2) + x3) + ... xn)
 
 sumVector :: (Foldable t, Num a) => t a -> a
