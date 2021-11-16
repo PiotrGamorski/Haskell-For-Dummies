@@ -5,6 +5,7 @@ module Lib where
 import Data.List (elemIndex)
 import Data.Maybe (fromMaybe)
 import System.IO ()
+import GHC.OldList (elemIndex)
 
 someFunc :: IO ()
 someFunc = putStrLn "Hey buddies we're really cool honest"
@@ -58,7 +59,7 @@ pow2loop' n resInit i
 -- How to execute the latter function in GHCI? Run: someLoop 3 (\a->a) 1 0
 -- The latter function in not constructed well as it takes anonym. func in body 
 someLoop :: (Ord t, Num a, Num t) => t -> (a -> a) -> t -> a -> a
-someLoop n result i 
+someLoop n result i
  | i < n = someLoop n (\ result -> result * 2 + 1) (i + 1)
  | otherwise = result
 
@@ -124,7 +125,7 @@ doubleNums' nums
 doubleNums'' :: Num a => [a] -> [a]
 doubleNums'' [] = []
 doubleNums'' (x : xs) = double' x : doubleNums'' xs
- where double' num = 2 * num  
+ where double' num = 2 * num
 
 -- the same function but using "Patern Matching" and map
 double :: Num a => [a] -> [a]
@@ -179,7 +180,7 @@ removeOddFilter = filter even
 
 -- We can change a diffrent conditions using filter
 filterList :: [Integer] -> [Integer]
-filterList = filter (\ a -> even a && a > 2 && a < 7) 
+filterList = filter (\ a -> even a && a > 2 && a < 7)
 
 anyEven :: Integral a => [a] -> Bool
 anyEven nums = case removeOddGuard nums of
@@ -212,6 +213,12 @@ increaseEveryEven = map evenOrOdd
 getAllIndexesOfList :: Eq a => [a] -> [Maybe Int]
 getAllIndexesOfList elems = map (`elemIndex` elems) elems
 
+a :: Maybe Int
+a = elemIndex 4 [1, 2, 3, 4, 5, 6, 7, 8, 9]
+-- including fromMaybe(-1) will get rid off "Just" and return the value.
+b :: Int
+b = fromMaybe (-1) $ elemIndex 4 [1,2,3,4,5,6,7,8,9]
+
 -- fromMaybe (-1): "Just Value" -> Value 
 mupliplyEvenListElement :: (Eq p, Num p) => p -> [p] -> p
 mupliplyEvenListElement a list
@@ -222,17 +229,51 @@ multiplyEverySecond :: (Eq b, Num b) => [b] -> [b]
 multiplyEverySecond nums = map (`mupliplyEvenListElement` nums) nums
 
 multiplyEverySecond' :: (Eq b, Num b) => [b] -> [b]
-multiplyEverySecond' nums = map (`multiplyEvenElem` nums) nums 
- where multiplyEvenElem a list 
-        | even (fromMaybe (-1) $ elemIndex a list) = 2 * a 
+multiplyEverySecond' nums = map (`multiplyElemByEvenIndex` nums) nums
+ where multiplyElemByEvenIndex a list
+        | even (fromMaybe (-1) $ elemIndex a list) = 2 * a
         | otherwise = a
 
-a :: Maybe Int
-a = elemIndex 4 [1, 2, 3, 4, 5, 6, 7, 8, 9]
-b :: Int
-b = fromMaybe (-1) $ elemIndex 4 [1,2,3,4,5,6,7,8,9]
 
--- reuslt of latter is 3
+listModify :: (Eq b, Num b) => [b] -> [b]
+listModify [] = []
+listModify nums = map (`pickAndModifyElem` nums) nums
+ where pickAndModifyElem x list
+        | fromMaybe (-1) (elemIndex x list) > 3 = 10 * x
+        | otherwise = x
+
+listModify' :: (Num b, Eq b) => [b] -> [b]
+listModify' [] = []
+listModify' nums = map(`pickAndModifyElem` nums) nums
+ where pickAndModifyElem x list =
+        let {index = fromMaybe (-1) (elemIndex x list)}
+        in
+         if index > 3 then 5 * x
+         else if index == 3 then 10 * x + 3
+         else if index < 3 && index >= 2 then 3 * x
+         else x
+
+-- With "case of" we cannot use inequality conditions. How to use the guards?
+listModify'' :: (Num b, Eq b) => [b] -> [b]
+listModify'' [] = []
+listModify'' nums = map(`pickAndModifyElem` nums) nums
+ where pickAndModifyElem x list =
+        let {index = fromMaybe (-1) (elemIndex x list)}
+        in
+          case index of
+            3 -> 3 * x
+            _ -> x
+
+newListModify :: (Num b, Eq b) => [b] -> [b]
+newListModify [] = []
+newListModify nums = map(`pickAndModifyElem` nums) nums
+ where pickAndModifyElem x list 
+          | index > 3 = 5 * x
+          | index == 3 = 10 * x +3
+          | index < 3 && index >= 2 = 3 * x
+          | index == 1 = x + 47 
+          | otherwise = -x
+          where index = fromMaybe (-1) (elemIndex x list)
 
 greaterThan :: [Integer] -> [Integer]
 greaterThan = filter (> 5)
