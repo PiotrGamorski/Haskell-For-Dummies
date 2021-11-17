@@ -307,6 +307,8 @@ addElemToTheEndOfTheList' num (x : xs) = x : addElemToTheEndOfTheList' num xs
 addElemToTheEndOfTheList'' :: Num a => a -> [a] -> [a]
 addElemToTheEndOfTheList'' num = foldr (:) [num]
 
+-- This approach involes making to seperate lists to add only one element
+-- it works but it's not very efficient
 insertElemAt :: Eq a => Int -> a -> [a] -> [a]
 insertElemAt _ _ [] = []
 insertElemAt index elem xs =
@@ -316,6 +318,13 @@ insertElemAt index elem xs =
   rightSideList = filter (\ x -> func x xs > index) xs
   in
    leftSideList ++ [elem] ++ rightSideList
+
+-- now it is achieved with a recursion approach
+insertElemAt' :: (Ord t1, Num t1) => t2 -> t1 -> [t2] -> [t2]
+insertElemAt' newElement _ [] = [newElement]
+insertElemAt' newElement index (x : xs)
+ | index <= 0 = newElement : x : xs
+ | otherwise = x : insertElemAt' newElement (index - 1) xs 
 
 pickElemFromList' :: Eq a => Int -> [a] -> [a]
 pickElemFromList' _ [] = []
