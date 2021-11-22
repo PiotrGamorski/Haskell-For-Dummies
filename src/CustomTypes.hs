@@ -83,6 +83,12 @@ getMyCustomerNameShorter (MyCustomer _ name _) = name
 -- By the way, above works the pattern matching - that's way
 -- it can take properties when given "stef" as argument
 
+data StringTree = StringTree String [StringTree] deriving Show
+hierarchy :: StringTree
+hierarchy = StringTree "C:" [StringTree "Program Files" []
+              , StringTree "Users" [StringTree "Alice" []]
+              , StringTree "Cats" []]
+
 data Bool = False | True deriving Show
 x :: CustomTypes.Bool
 x = CustomTypes.False
@@ -102,6 +108,12 @@ data StringList = EmptyStringList | ConsStringList String StringList deriving Sh
 lengthStringList :: StringList -> Int
 lengthStringList EmptyStringList = 0
 lengthStringList (ConsStringList _ xs) = 1 + lengthStringList xs
+
+-- those functions are alomst indentical - the second one is more generic
+-- but the idea to measure the lenght is the same
+myLength :: Num p => [a] -> p
+myLength [] = 0
+myLength (_ : xs) = 1 + myLength xs 
 
 data Thing = Shoe
            | Ship
