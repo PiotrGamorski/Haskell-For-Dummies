@@ -400,3 +400,9 @@ sumVector = sum
 
 doPrinting :: IO ()
 doPrinting = print (2 :: Float)
+
+-- do -Blocks
+introduce :: [Char] -> [Char] -> IO ()
+introduce name1 name2 = do
+  putStrLn (name1 ++ ", this is " ++ name2)
+  putStrLn (name2 ++ ", this is " ++ name1)
